@@ -21,32 +21,21 @@ function authenicateToken(req, res, nex) {
 
   if (token == null) return res.sendStatus(401);
 
-  passport.use(new OAuth2Strategy({
-    authorizationURL: 'https://www.example.com/as/authorization.oauth2',
-    tokenURL: `https://www.example.com/as/${token}`,
-    clientID: EXAMPLE_CLIENT_ID,
-    clientSecret: EXAMPLE_CLIENT_SECRET,
-    callbackURL: ""
+  var strategy = new OAuth2Strategy({
+    authorizationURL: 'https://www.example.com/oauth2/authorize',
+    tokenURL: `https://www.example.com/oauth2/${token}`,
+    clientID: 'ABC123',
+    clientSecret: 'secret',
+    callbackURL: 'https://www.example.net/auth/example/callback',
+    state: true,
+    pkce: true
   },
-  function(accessToken, refreshToken, profile, done) {
-    User.findOne({ 'ping.id' : profile.id }, function (err, user) {
-        if (err) { return done(err); }
-        if (user) {
-            return done(null, user);
-        } else {
-            var newUser = new User();
-            newUser.ping.id    = profile.id;
-            newUser.ping.token = accessToken;
-            newUser.ping.name  = profile.displayName;
-            newUser.ping.email = profile.email;
-            newUser.save(function(err) {
-                if (err) { throw err; }
-                return done(null, newUser);
-            });
-        }
-    });
-  }
-));
+  function(accessToken, profile, done) {
+    if (accessToken == token) { 
+      return done(null, { id: '1234' }, { message: 'Hello' });
+    }
+    return done(null, false);
+  })
 }
 
 app.listen(3000);
